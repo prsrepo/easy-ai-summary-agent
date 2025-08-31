@@ -1,19 +1,17 @@
-import typer
-# from agent.workflow import build_graph
+from agent.graph import stream_graph_updates
 
-app = typer.Typer(help="AI Summary Agent CLI")
 
-@app.command()
-def query(question: str):
-    """
-    Run the AI summary agent with a query.
-    Example:
-      python main.py query "Hello there!"
-    """
-    # graph = build_graph()
-    # result = graph.invoke({"question": question})
-    typer.echo("\n✅ Final Result Sent:\n" + question)
-    # typer.echo(result["final_summary"])
+while True:
+    try:
+        user_input = input("User: ")
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
 
-if __name__ == "__main__":
-    app()
+        stream_graph_updates(user_input)
+    except:
+        # fallback if input() is not available
+        user_input = "What do you know about LangGraph?"
+        print("User: " + user_input)
+        stream_graph_updates(user_input)
+        break

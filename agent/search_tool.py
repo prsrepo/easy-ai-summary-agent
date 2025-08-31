@@ -1,36 +1,29 @@
-from typing import TypedDict
-from typing_extensions import Annotated
-from dotenv import load_dotenv
-from langchain_tavily import TavilySearch
-from langchain.chat_models import init_chat_model
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
+import json
 
-load_dotenv()
-
-tool = TavilySearch(max_results=2)
-tools = [tool]
-
-llm = init_chat_model('openai:gpt-4.1')
-llm_with_tools = llm.bind_tools(tools)
+from langchain_core.messages import ToolMessage
 
 
-class State(TypedDict):
-    messages: Annotated[list, add_messages]
+class BasicToolNode:
+    """A node that runs the tools requested in the last AIMessage."""
 
+    def __init__(self, tools: list) -> None:
+        self.tools_by_name = {tool.name: tool for tool in tools}
 
-graph_builder = StateGraph(State)
-
-
-def chatbot(state: State):
-    return {"messages": [llm_with_tools.invoke(state['messages'])]}
-
-graph_builder.add_node('chatbot', chatbot)
-graph_builder.add_edge(START, 'chatbot')
-graph_builder.add_edge('chatbot', END)
-
-
-
-
-
-
+    def __call__(self, inputs: dict):
+        if messages := inputs.get("messages", []):
+            message = messages[-1]
+        else:
+            raise ValueError("No message found in input")
+        outputs = []
+        for tool_call in message.tool_calls:
+            tool_result = self.tools_by_name[tool_call["name"]].invoke(
+                tool_call["args"]
+            )
+            outputs.append(
+                ToolMessage(
+                    content=json.dumps(tool_result),
+                    name=tool_call["name"],
+                    tool_call_id=tool_call["id"],
+                )
+            )
+        return {"messages": outputs}
