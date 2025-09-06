@@ -1,17 +1,19 @@
-from agent.graph import stream_graph_updates
+import dotenv
+from langchain_core.messages import HumanMessage
+
+from reasoning_agent.graph import get_graph
+
+dotenv.load_dotenv()
 
 
-while True:
-    try:
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            break
-
-        stream_graph_updates(user_input)
-    except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
-        break
+if __name__ == '__main__':
+    print("Starting the flow of execution")
+    flow = get_graph()
+    app = flow.compile()
+    # app.get_graph().draw_mermaid_png(output_file_path="flow.png")
+    res = app.invoke({
+        "messages": [HumanMessage(
+            content="What is the weather like in Bangalore? list it and then triple it"
+        )]
+    })
+    print(res["messages"][-1].content)

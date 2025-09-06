@@ -5,8 +5,6 @@ from langgraph.graph import StateGraph, START
 
 from agent.models import State
 from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.types import interrupt, Command
 
 load_dotenv()
 
@@ -24,8 +22,7 @@ def chatbot(state: State):
 
 graph_builder = StateGraph(State)
 
-
-graph_builder.add_node('chatbot', chatbot)
+graph_builder.add_node("chatbot", chatbot)
 
 tool_node = ToolNode(tools=[tool])
 graph_builder.add_node("tools", tool_node)
@@ -34,19 +31,7 @@ graph_builder.add_conditional_edges(
     "chatbot",
     tools_condition,
 )
-
+# Any time a tool is called, we return to the chatbot to decide the next step
 graph_builder.add_edge("tools", "chatbot")
-graph_builder.add_edge(START, 'chatbot')
-
-# memory = InMemorySaver()
-# graph = graph_builder.compile(checkpointer=memory)
-
+graph_builder.add_edge(START, "chatbot")
 graph = graph_builder.compile()
-
-
-def stream_graph_updates(user_input: str):
-
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-                            #   {"configurable": {"thread_id": "1"}}):
-        for value in event.values():
-            print("Assistant:", value["messages"][-1].content)
