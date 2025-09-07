@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # app.get_graph().draw_mermaid_png(output_file_path="flow.png")
     res = app.invoke({
         "messages": [HumanMessage(
-            content="What is the weather like in Bangalore? list it and then triple it"
+            content="What is the temperature in Bangalore? list it and then triple it"
         )]
     })
     print(res["messages"][-1].content)
