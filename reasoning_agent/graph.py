@@ -30,3 +30,25 @@ def get_graph():
     })
     flow.add_edge(ACT, AGENT_REASON)
     return flow
+
+
+"""
+Usage example:
+
+
+
+if __name__ == '__main__':
+    print("Starting the flow of execution")
+    flow = get_graph()
+    app = flow.compile()
+    # app.get_graph().draw_mermaid_png(output_file_path="flow.png")
+    res = app.invoke({
+        "messages": [HumanMessage(
+            content="What is the temperature in Bangalore? list it and then triple it"
+        )]
+    })
+    print(res["messages"][-1].content)
+
+
+
+"""
