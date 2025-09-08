@@ -41,7 +41,7 @@ if __name__ == '__main__':
     print("Starting the flow of execution")
     flow = get_graph()
     app = flow.compile()
-    # app.get_graph().draw_mermaid_png(output_file_path="flow.png")
+    # app.get_graph().draw_mermaid_png(output_file_path="graph.png")
     res = app.invoke({
         "messages": [HumanMessage(
             content="What is the temperature in Bangalore? list it and then triple it"

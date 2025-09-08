@@ -45,6 +45,8 @@ These are the web results:
 
 def assistant(state: State):
     user_message = state["user_msg"]
+
+
     results = search_tool.invoke(user_message)
     web_result_content = "\n".join(
         [r["content"] for r in results.get("results", [])]
