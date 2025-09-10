@@ -24,9 +24,7 @@ def collect_search_data(state: TypedDict) -> dict:
     LOGGER.info("Collecting search data")
     search_tool = TavilySearch(max_results=3)
     results = search_tool.invoke(state["user_query"])
-    web_result_content = "\n".join(
-        [r["content"] for r in results.get("results", [])]
-    )
+    web_result_content = "\n".join([r["content"] for r in results.get("results", [])])
     return {"search_data": web_result_content}
 
 
@@ -63,12 +61,12 @@ def wait_for_approval(state: TypedDict) -> dict:
     interrupt({"pending_summary": state.get("summary", "")})
     return {"is_approved": state["is_approved"]}
 
+
 def send_summary_email(state: TypedDict) -> dict:
     LOGGER.info("Sending summary email")
     send_email_tool(
         os.environ.get("GMAIL"),
         f"Summary for user query: {state['user_query']}",
-        state["summary"]
+        state["summary"],
     )
     return {"email": "Sent"}
-

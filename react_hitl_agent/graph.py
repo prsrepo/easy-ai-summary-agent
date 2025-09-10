@@ -1,8 +1,17 @@
-from langgraph.graph import StateGraph, START, END
-from react_hitl_agent.nodes import State, collect_search_data, summarize_search_data, wait_for_approval, send_summary_email
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.graph import StateGraph
+from langgraph.graph.state import CompiledStateGraph
+
+from react_hitl_agent.nodes import (
+    State,
+    collect_search_data,
+    summarize_search_data,
+    wait_for_approval,
+    send_summary_email,
+)
 
 
-def get_graph() -> StateGraph:
+def get_summarization_graph(checkpointer: BaseCheckpointSaver) -> CompiledStateGraph:
     flow = StateGraph(State)
 
     flow.add_node("collect_search_data", collect_search_data)
@@ -17,13 +26,8 @@ def get_graph() -> StateGraph:
     flow.add_conditional_edges(
         "wait_for_approval",
         lambda state: "approved" if state.get("is_approved") else "rejected",
-        {
-            "approved": "send_summary_email",
-            "rejected": "summarize_search_data"
-        }
+        {"approved": "send_summary_email", "rejected": "summarize_search_data"},
     )
-
-    # flow.add_edge("wait_for_approval", "send_summary_email")
     flow.set_finish_point("send_summary_email")
-    # flow.add_conditional_edges()
-    return flow
+
+    return flow.compile(checkpointer=checkpointer)

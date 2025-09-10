@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: api
+    command: make run
+    ports:
+      - "8000:8000"
+    environment:
+      # Database connection details
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    depends_on:
+      - db
+    volumes:
+      - .:/app  # mount entire repo into /app
+    stdin_open: true   # keep stdin open (docker run -i)
+    tty: true          # allocate a TTY (docker run -t)
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secretpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

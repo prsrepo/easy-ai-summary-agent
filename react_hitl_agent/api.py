@@ -1,28 +1,21 @@
-import sqlite3, dotenv
+import dotenv
 
 from fastapi import FastAPI
-from langgraph.types import Command, interrupt
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.types import Command
 
-from react_hitl_agent.graph import get_graph
+from react_hitl_agent.db import checkpointer
+from react_hitl_agent.graph import get_summarization_graph
 
 dotenv.load_dotenv()
 
 app = FastAPI()
 
 
-conn = sqlite3.connect("checkpoints.db", check_same_thread=False)
-# Simple in-memory store for checkpoints (use Redis/DB in production)
-checkpointer = SqliteSaver(conn)
-
-exec_graph = get_graph().compile(checkpointer=checkpointer)
-
-
 @app.post("/query")
-async def query(thread_id:str, user_query: str):
-    result = exec_graph.invoke(
-        {"user_query": user_query},
-        config={"configurable": {"thread_id": thread_id}}
+async def query(thread_id: str, user_query: str):
+    graph = get_summarization_graph(checkpointer)
+    result = graph.invoke(
+        {"user_query": user_query}, config={"configurable": {"thread_id": thread_id}}
     )
     # If paused at approval
     if "__interrupt__" in result:
@@ -39,13 +32,13 @@ async def query(thread_id:str, user_query: str):
 
 @app.post("/resume")
 async def resume(thread_id: str, is_approved: bool):
-    result = exec_graph.invoke(
+    graph = get_summarization_graph(checkpointer)
+    result = graph.invoke(
         Command(resume=True, update={"is_approved": is_approved}),
-        config={"configurable": {"thread_id": thread_id}}
+        config={"configurable": {"thread_id": thread_id}},
     )
 
     if "__interrupt__" in result:
-        # Graph paused again (e.g., rejected and back to summarize)
         interrupt_info = result["__interrupt__"][0].value
         return {
             "status": "paused",

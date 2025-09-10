@@ -5,8 +5,8 @@ RELOAD = --reload
 
 .PHONY: run
 run:
-	uvicorn $(APP) --host $(HOST) --port $(PORT) $(RELOAD)
+	uv run uvicorn $(APP) --host $(HOST) --port $(PORT) $(RELOAD)
 
 .PHONY: prod
 prod:
-	uvicorn $(APP) --host $(HOST) --port $(PORT)
+	uv run uvicorn $(APP) --host $(HOST) --port $(PORT)
